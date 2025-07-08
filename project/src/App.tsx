@@ -47,6 +47,7 @@ function App() {
   };
 
   const handleLoginSuccess = () => {
+    console.log('handleLoginSuccess appelé');
     setCurrentState('dashboard');
   };
 
@@ -143,6 +144,8 @@ function App() {
     }
   };
 
+  // Log de debug pour comprendre l'état de l'app
+  console.log('currentState', currentState, 'isAuthenticated', isAuthenticated, 'user', user, 'currentPath', currentPath);
   return (
     <div className="min-h-screen bg-gray-50">
       <AnimatePresence mode="wait">
@@ -197,13 +200,11 @@ function App() {
               currentPath={currentPath}
               onNavigate={handleNavigate}
             />
-            
             <div className="flex-1 flex flex-col overflow-hidden">
               <Header
                 onMenuClick={() => setSidebarOpen(true)}
                 title={getPageTitle()}
               />
-              
               <main className="flex-1 overflow-y-auto p-6">
                 <motion.div
                   key={currentPath}

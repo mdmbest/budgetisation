@@ -9,20 +9,25 @@ import {
   Edit, 
   Trash2,
   Calendar,
-  DollarSign
+  DollarSign,
+  X
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useBudgetRequests } from '../hooks/useBudgetRequests';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { formatCurrency, formatDateShort } from '../utils/formatters';
+import { BudgetRequest } from '../types';
 
 export const RequestsPage: React.FC = () => {
   const { user } = useAuth();
-  const { requests } = useBudgetRequests();
+  const { requests, deleteRequest, fetchRequests } = useBudgetRequests();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [viewedRequest, setViewedRequest] = useState<BudgetRequest | null>(null);
+  const navigate = useNavigate();
 
   const userRequests = requests.filter(r => r.agentId === user?.id);
 
@@ -78,6 +83,24 @@ export const RequestsPage: React.FC = () => {
     return urgencyMap[urgency] || urgency;
   };
 
+  // Handler pour supprimer une demande
+  const handleDelete = async (requestId: string) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette demande ?')) {
+      await deleteRequest(requestId);
+      await fetchRequests();
+    }
+  };
+
+  // Handler pour modifier une demande
+  const handleEdit = (requestId: string) => {
+    navigate(`/new-request?id=${requestId}`);
+  };
+
+  // Handler pour voir une demande
+  const handleView = (request: BudgetRequest) => {
+    setViewedRequest(request);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -88,9 +111,9 @@ export const RequestsPage: React.FC = () => {
             Gérez et suivez l'état de vos demandes budgétaires
           </p>
         </div>
-        <Button variant="primary" icon={<Plus size={18} />}>
-          Nouvelle Demande
-        </Button>
+        {/* <Button variant="primary" icon={<Plus size={18} />}> */}
+        {/*   Nouvelle Demande */}
+        {/* </Button> */}
       </div>
 
       {/* Stats Cards */}
@@ -252,16 +275,16 @@ export const RequestsPage: React.FC = () => {
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="sm" icon={<Eye size={16} />}>
+                    <Button variant="ghost" size="sm" icon={<Eye size={16} />} onClick={() => handleView(request)}>
                       Voir
                     </Button>
                     {(request.status === 'draft' || request.status === 'chef_rejected') && (
-                      <Button variant="ghost" size="sm" icon={<Edit size={16} />}>
+                      <Button variant="ghost" size="sm" icon={<Edit size={16} />} onClick={() => handleEdit(request.id)}>
                         Modifier
                       </Button>
                     )}
                     {request.status === 'draft' && (
-                      <Button variant="ghost" size="sm" icon={<Trash2 size={16} />}>
+                      <Button variant="ghost" size="sm" icon={<Trash2 size={16} />} onClick={() => handleDelete(request.id)}>
                         Supprimer
                       </Button>
                     )}
@@ -272,6 +295,38 @@ export const RequestsPage: React.FC = () => {
           ))
         )}
       </div>
+      {/* Modal de visualisation */}
+      {viewedRequest && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-900">Détail de la demande</h3>
+              <button onClick={() => setViewedRequest(null)} className="p-2 hover:bg-gray-100 rounded-lg">
+                <X size={20} />
+              </button>
+            </div>
+            {viewedRequest && (
+              <div className="space-y-2">
+                <div><b>Titre :</b> {viewedRequest.title}</div>
+                <div><b>Description :</b> {viewedRequest.description}</div>
+                <div><b>Montant :</b> {formatCurrency(viewedRequest.amount)}</div>
+                <div><b>Statut :</b> {getStatusText(viewedRequest.status)}</div>
+                <div><b>Urgence :</b> {getUrgencyText(viewedRequest.urgency)}</div>
+                <div><b>Département :</b> {viewedRequest.department}</div>
+                <div><b>Catégorie :</b> {viewedRequest.category}</div>
+                <div><b>Code :</b> {viewedRequest.accountCode}</div>
+                <div><b>Créée le :</b> {formatDateShort(viewedRequest.createdAt)}</div>
+                <div><b>Dernière mise à jour :</b> {formatDateShort(viewedRequest.updatedAt)}</div>
+              </div>
+            )}
+            <div className="flex justify-end mt-6">
+              <Button variant="outline" onClick={() => setViewedRequest(null)}>
+                Fermer
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };

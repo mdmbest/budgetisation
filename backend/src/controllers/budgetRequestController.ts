@@ -126,11 +126,26 @@ export class BudgetRequestController {
       if (req.query.dateFrom) filters.dateFrom = req.query.dateFrom as string;
       if (req.query.dateTo) filters.dateTo = req.query.dateTo as string;
 
-      // Appliquer les restrictions selon le rôle
+      // Filtrage métier strict selon le rôle
       if (userRole === 'agent') {
+        // L'agent ne voit que ses propres demandes (tous statuts)
         filters.agentId = userId;
       } else if (userRole === 'chef_departement' && userDepartment) {
+        // Le chef ne voit que les demandes de son département, hors brouillons
         filters.department = userDepartment;
+        filters.status = {
+          not: 'draft',
+        };
+      } else if (userRole === 'direction') {
+        // La direction ne voit que les demandes validées par le chef ou en cours de traitement direction
+        filters.status = {
+          in: ['chef_approved', 'direction_approved'],
+        };
+      } else if (userRole === 'recteur') {
+        // Le recteur ne voit que les demandes validées par la direction ou en cours de traitement recteur
+        filters.status = {
+          in: ['direction_approved', 'recteur_approved'],
+        };
       }
 
       const result = await BudgetRequestService.getRequests(filters, page, limit);

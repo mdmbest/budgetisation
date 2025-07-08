@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Users, 
@@ -25,7 +25,7 @@ import { User, UserRole } from '../types';
 
 export const UsersManagementPage: React.FC = () => {
   const { user: currentUser } = useAuth();
-  const { users, createUser, updateUser, deleteUser, sendCredentials, isLoading } = useUsers();
+  const { users, createUser, updateUser, deleteUser, sendCredentials, isLoading, fetchUsers } = useUsers();
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -44,6 +44,42 @@ export const UsersManagementPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Ajout du state pour le formulaire d'édition
+  const [editUserData, setEditUserData] = useState({
+    email: '',
+    firstName: '',
+    lastName: '',
+    role: 'agent' as UserRole,
+    department: '',
+    isActive: true
+  });
+
+  // Remplir le formulaire d'édition quand editingUser change
+  useEffect(() => {
+    if (editingUser) {
+      setEditUserData({
+        email: editingUser.email,
+        firstName: editingUser.firstName,
+        lastName: editingUser.lastName,
+        role: editingUser.role,
+        department: editingUser.department || '',
+        isActive: editingUser.isActive
+      });
+    }
+  }, [editingUser]);
+
+  const handleEditUser = async () => {
+    if (!editingUser) return;
+    try {
+      await updateUser(editingUser.id, editUserData);
+      setEditingUser(null);
+      fetchUsers();
+      alert('Utilisateur modifié avec succès');
+    } catch (error) {
+      alert('Erreur lors de la modification de l\'utilisateur');
+    }
+  };
+
   const departments = [
     'Informatique',
     'Génie Civil',
@@ -54,6 +90,10 @@ export const UsersManagementPage: React.FC = () => {
     'Chimie',
     'Administration'
   ];
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const filteredUsers = users.filter(u => {
     const matchesSearch = u.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -268,7 +308,7 @@ export const UsersManagementPage: React.FC = () => {
 
       {/* Users List */}
       <Card>
-        <div className="overflow-x-auto">
+        <div className="overflow-y-auto max-h-[60vh]">
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200">
@@ -324,14 +364,6 @@ export const UsersManagementPage: React.FC = () => {
                         onClick={() => handleSendCredentials(u.id, 'email')}
                       >
                         Email
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        icon={<Phone size={16} />}
-                        onClick={() => handleSendCredentials(u.id, 'sms')}
-                      >
-                        SMS
                       </Button>
                       <Button 
                         variant="ghost" 
@@ -517,6 +549,117 @@ export const UsersManagementPage: React.FC = () => {
               </Button>
               <Button variant="primary" onClick={handleCreateUser} isLoading={isLoading}>
                 Créer l'utilisateur
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Edit User Modal */}
+      {editingUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-900">Modifier l'utilisateur</h3>
+              <button
+                onClick={() => setEditingUser(null)}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Prénom *
+                  </label>
+                  <input
+                    type="text"
+                    value={editUserData.firstName}
+                    onChange={(e) => setEditUserData({ ...editUserData, firstName: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nom *
+                  </label>
+                  <input
+                    type="text"
+                    value={editUserData.lastName}
+                    onChange={(e) => setEditUserData({ ...editUserData, lastName: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email *
+                </label>
+                <input
+                  type="email"
+                  value={editUserData.email}
+                  onChange={(e) => setEditUserData({ ...editUserData, email: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Rôle *
+                  </label>
+                  <select
+                    value={editUserData.role}
+                    onChange={(e) => setEditUserData({ ...editUserData, role: e.target.value as UserRole })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="agent">Agent</option>
+                    <option value="chef_departement">Chef Département</option>
+                    <option value="direction">Direction</option>
+                    <option value="recteur">Recteur</option>
+                    <option value="auditeur">Auditeur</option>
+                    <option value="admin">Super Admin</option>
+                  </select>
+                </div>
+                {(editUserData.role === 'agent' || editUserData.role === 'chef_departement') && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Département *
+                    </label>
+                    <select
+                      value={editUserData.department}
+                      onChange={(e) => setEditUserData({ ...editUserData, department: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">Sélectionner un département</option>
+                      {departments.map(dept => (
+                        <option key={dept} value={dept}>{dept}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Statut
+                </label>
+                <select
+                  value={editUserData.isActive ? 'active' : 'inactive'}
+                  onChange={e => setEditUserData({ ...editUserData, isActive: e.target.value === 'active' })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="active">Actif</option>
+                  <option value="inactive">Inactif</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <Button variant="outline" onClick={() => setEditingUser(null)}>
+                Annuler
+              </Button>
+              <Button variant="primary" onClick={handleEditUser} isLoading={isLoading}>
+                Enregistrer
               </Button>
             </div>
           </Card>

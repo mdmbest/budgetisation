@@ -73,10 +73,9 @@ export const useBudgetRequests = create<BudgetRequestStore>((set, get) => ({
       console.log('Réponse du serveur:', data);
       
       if (data.success && data.data) {
-        set(state => ({
-          requests: [...state.requests, data.data],
-          isLoading: false
-        }));
+        // Après création, rafraîchir la liste complète depuis l'API
+        await get().fetchRequests();
+        set({ isLoading: false });
       }
     } catch (error) {
       console.error('Erreur lors de la création de la demande:', error);

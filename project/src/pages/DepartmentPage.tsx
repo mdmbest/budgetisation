@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Users, 
@@ -18,13 +18,20 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { formatCurrency, formatDateShort } from '../utils/formatters';
+import { BudgetRequest } from '../types';
 
 export const DepartmentPage: React.FC = () => {
   const { user } = useAuth();
-  const { requests, updateRequestStatus } = useBudgetRequests();
+  const { requests, updateRequestStatus, fetchRequests } = useBudgetRequests();
   const [selectedTab, setSelectedTab] = useState('overview');
+  const [viewedRequest, setViewedRequest] = useState<BudgetRequest | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const departmentRequests = requests.filter(r => r.department === user?.department);
+  useEffect(() => {
+    fetchRequests();
+  }, []);
+
+  const departmentRequests = requests;
   const pendingRequests = departmentRequests.filter(r => r.status === 'submitted' || r.status === 'chef_review');
 
   const stats = [
@@ -63,6 +70,27 @@ export const DepartmentPage: React.FC = () => {
     updateRequestStatus(requestId, status, comment);
   };
 
+  // Handler pour voir une demande
+  const handleView = (request: BudgetRequest) => {
+    setViewedRequest(request);
+  };
+
+  // Handler pour approuver/rejeter avec confirmation et rafraîchissement
+  const handleRequestActionWithConfirm = async (requestId: string, action: 'approve' | 'reject', comment?: string) => {
+    const actionLabel = action === 'approve' ? 'approuver' : 'rejeter';
+    if (!window.confirm(`Voulez-vous vraiment ${actionLabel} cette demande ?`)) return;
+    setIsProcessing(true);
+    try {
+      await handleRequestAction(requestId, action, comment);
+      await fetchRequests();
+      alert(`Demande ${actionLabel} avec succès !`);
+    } catch (e) {
+      alert('Erreur lors du traitement de la demande.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     if (status.includes('approved')) return 'success';
     if (status.includes('rejected')) return 'danger';
@@ -91,19 +119,20 @@ export const DepartmentPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-green-500 rounded-xl flex items-center justify-center">
-          <Users className="text-white" size={24} />
+      {/* Header personnalisé chef de département */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
+        <div className="flex items-center gap-3">
+          <Users className="text-blue-700" size={32} />
+          <div>
+            <h1 className="text-2xl font-extrabold text-blue-900">Espace Chef de Département</h1>
+            <p className="text-base text-blue-700 font-medium">Validez et supervisez les demandes de votre département</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Gestion Département {user?.department}
-          </h1>
-          <p className="text-gray-600">
-            Consolidation et validation des demandes budgétaires
-          </p>
-        </div>
+      </div>
+      <div className="mb-4">
+        <nav className="text-sm text-blue-800 font-semibold">
+          Département
+        </nav>
       </div>
 
       {/* Stats */}
@@ -115,7 +144,7 @@ export const DepartmentPage: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: index * 0.1 }}
           >
-            <Card hover className="relative overflow-hidden">
+            <Card hover className="relative overflow-hidden min-h-[140px] flex flex-col justify-between">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600 mb-1">
@@ -273,14 +302,15 @@ export const DepartmentPage: React.FC = () => {
                             Créée le {formatDateShort(request.createdAt)}
                           </div>
                           <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm" icon={<Eye size={16} />}>
+                            <Button variant="ghost" size="sm" icon={<Eye size={16} />} onClick={() => handleView(request)}>
                               Détails
                             </Button>
                             <Button 
                               variant="danger" 
                               size="sm" 
                               icon={<X size={16} />}
-                              onClick={() => handleRequestAction(request.id, 'reject', 'Demande rejetée par le chef de département')}
+                              onClick={() => handleRequestActionWithConfirm(request.id, 'reject', 'Demande rejetée par le chef de département')}
+                              disabled={isProcessing}
                             >
                               Rejeter
                             </Button>
@@ -288,7 +318,8 @@ export const DepartmentPage: React.FC = () => {
                               variant="secondary" 
                               size="sm" 
                               icon={<Check size={16} />}
-                              onClick={() => handleRequestAction(request.id, 'approve', 'Demande approuvée par le chef de département')}
+                              onClick={() => handleRequestActionWithConfirm(request.id, 'approve', 'Demande approuvée par le chef de département')}
+                              disabled={isProcessing}
                             >
                               Approuver
                             </Button>
@@ -337,6 +368,38 @@ export const DepartmentPage: React.FC = () => {
           )}
         </div>
       </Card>
+
+      {/* Modal de visualisation */}
+      {viewedRequest && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-900">Détail de la demande</h3>
+              <button onClick={() => setViewedRequest(null)} className="p-2 hover:bg-gray-100 rounded-lg">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="space-y-2">
+              <div><b>Titre :</b> {viewedRequest.title}</div>
+              <div><b>Description :</b> {viewedRequest.description}</div>
+              <div><b>Montant :</b> {formatCurrency(viewedRequest.amount)}</div>
+              <div><b>Statut :</b> {getStatusText(viewedRequest.status)}</div>
+              <div><b>Urgence :</b> {viewedRequest.urgency}</div>
+              <div><b>Demandeur :</b> {viewedRequest.agentName}</div>
+              <div><b>Département :</b> {viewedRequest.department}</div>
+              <div><b>Catégorie :</b> {viewedRequest.category}</div>
+              <div><b>Code :</b> {viewedRequest.accountCode}</div>
+              <div><b>Créée le :</b> {formatDateShort(viewedRequest.createdAt)}</div>
+              <div><b>Dernière mise à jour :</b> {formatDateShort(viewedRequest.updatedAt)}</div>
+            </div>
+            <div className="flex justify-end mt-6">
+              <Button variant="outline" onClick={() => setViewedRequest(null)}>
+                Fermer
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };

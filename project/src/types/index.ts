@@ -10,7 +10,7 @@ export interface User {
   lastLogin?: string;
 }
 
-export type UserRole = 'agent' | 'chef_departement' | 'direction' | 'recteur' | 'auditeur' | 'admin';
+export type UserRole = 'agent' | 'chef_departement' | 'direction' | 'recteur' | 'admin';
 
 export interface RequestItem {
   id: string;

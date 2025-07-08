@@ -40,7 +40,8 @@ export const useUsers = create<UsersStore>((set, get) => ({
 
       const data = await response.json();
       if (data.success && data.data) {
-        set({ users: data.data.data || [], isLoading: false });
+        // Exclure les utilisateurs admin de la liste
+        set({ users: (data.data.data || []).filter(u => u.role !== 'admin'), isLoading: false });
       }
     } catch (error) {
       console.error('Erreur lors de la récupération des utilisateurs:', error);

@@ -82,10 +82,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onLogin, onDocumentation }) 
             <Logo size="md" variant="full" />
             
             <div className="flex items-center gap-3">
-              <Button onClick={onDocumentation} variant="outline">
+              {/* <Button onClick={onDocumentation} variant="outline">
                 <Book size={16} />
                 Documentation
-              </Button>
+              </Button> */}
               <Button onClick={onLogin} variant="primary">
                 Se Connecter
                 <ArrowRight size={16} />
@@ -161,10 +161,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onLogin, onDocumentation }) 
                   <Users size={20} />
                   Accéder à la Plateforme
                 </Button>
-                <Button onClick={onDocumentation} size="lg" variant="outline" className="shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 border-slate-300 hover:border-slate-400">
+                {/* <Button onClick={onDocumentation} size="lg" variant="outline" className="shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 border-slate-300 hover:border-slate-400">
                   <Book size={20} />
                   Documentation
-                </Button>
+                </Button> */}
               </div>
             </motion.div>
           </div>

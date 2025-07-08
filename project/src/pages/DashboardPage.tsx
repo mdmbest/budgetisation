@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   FileText, 
@@ -12,7 +12,9 @@ import {
   BarChart3,
   Shield,
   Settings,
-  Building
+  Building,
+  UserCheck,
+  Home
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useBudgetRequests } from '../hooks/useBudgetRequests';
@@ -23,10 +25,14 @@ import { formatCurrency } from '../utils/formatters';
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
-  const { requests } = useBudgetRequests();
+  const { requests, fetchRequests } = useBudgetRequests();
   const { users } = useUsers();
 
-  // Calculate stats based on user role
+  useEffect(() => {
+    fetchRequests();
+  }, []);
+
+  // Fonction utilitaire pour les stats selon le rôle
   const getStatsForRole = () => {
     if (!user) return [];
 
@@ -68,11 +74,10 @@ export const DashboardPage: React.FC = () => {
         ];
 
       case 'agent':
-        const userRequests = requests.filter(r => r.agentId === user.id);
         return [
           {
             title: 'Mes Demandes',
-            value: userRequests.length.toString(),
+            value: requests.filter(r => r.agentId === user.id).length.toString(),
             icon: <FileText className="text-slate-600" size={24} />,
             change: '+2 ce mois',
             color: 'slate',
@@ -80,7 +85,7 @@ export const DashboardPage: React.FC = () => {
           },
           {
             title: 'En Attente',
-            value: userRequests.filter(r => r.status.includes('review')).length.toString(),
+            value: requests.filter(r => r.status.includes('review')).length.toString(),
             icon: <Clock className="text-yellow-600" size={24} />,
             change: 'En cours',
             color: 'yellow',
@@ -88,7 +93,7 @@ export const DashboardPage: React.FC = () => {
           },
           {
             title: 'Approuvées',
-            value: userRequests.filter(r => r.status.includes('approved')).length.toString(),
+            value: requests.filter(r => r.status.includes('approved')).length.toString(),
             icon: <CheckCircle className="text-green-600" size={24} />,
             change: '+1 récemment',
             color: 'green',
@@ -96,7 +101,7 @@ export const DashboardPage: React.FC = () => {
           },
           {
             title: 'Montant Total',
-            value: formatCurrency(userRequests.reduce((sum, r) => sum + r.amount, 0)),
+            value: formatCurrency(requests.filter(r => r.agentId === user.id).reduce((sum, r) => sum + r.amount, 0)),
             icon: <DollarSign className="text-purple-600" size={24} />,
             change: 'Budget demandé',
             color: 'purple',
@@ -105,11 +110,10 @@ export const DashboardPage: React.FC = () => {
         ];
 
       case 'chef_departement':
-        const deptRequests = requests.filter(r => r.department === user.department);
         return [
           {
             title: 'Demandes Département',
-            value: deptRequests.length.toString(),
+            value: requests.filter(r => r.department === user.department).length.toString(),
             icon: <FileText className="text-slate-600" size={24} />,
             change: '+5 ce mois',
             color: 'slate',
@@ -117,7 +121,7 @@ export const DashboardPage: React.FC = () => {
           },
           {
             title: 'À Valider',
-            value: deptRequests.filter(r => r.status === 'chef_review').length.toString(),
+            value: requests.filter(r => r.status === 'chef_review').length.toString(),
             icon: <Clock className="text-yellow-600" size={24} />,
             change: 'Action requise',
             color: 'yellow',
@@ -133,7 +137,7 @@ export const DashboardPage: React.FC = () => {
           },
           {
             title: 'Budget Département',
-            value: formatCurrency(deptRequests.reduce((sum, r) => sum + r.amount, 0)),
+            value: formatCurrency(requests.filter(r => r.department === user.department).reduce((sum, r) => sum + r.amount, 0)),
             icon: <DollarSign className="text-purple-600" size={24} />,
             change: 'Total demandé',
             color: 'purple',
@@ -213,46 +217,158 @@ export const DashboardPage: React.FC = () => {
           }
         ];
 
-      case 'auditeur':
-        return [
-          {
-            title: 'Opérations Auditées',
-            value: requests.filter(r => r.status.includes('approved')).length.toString(),
-            icon: <Shield className="text-slate-600" size={24} />,
-            change: 'Conformes',
-            color: 'slate',
-            trend: '98%'
-          },
-          {
-            title: 'Anomalies Détectées',
-            value: '3',
-            icon: <AlertTriangle className="text-red-600" size={24} />,
-            change: 'À corriger',
-            color: 'red',
-            trend: '-2%'
-          },
-          {
-            title: 'Rapports Générés',
-            value: '12',
-            icon: <BarChart3 className="text-green-600" size={24} />,
-            change: 'Ce trimestre',
-            color: 'green',
-            trend: '+20%'
-          },
-          {
-            title: 'Conformité OHADA',
-            value: '98%',
-            icon: <CheckCircle className="text-purple-600" size={24} />,
-            change: 'Excellent',
-            color: 'purple',
-            trend: '+2%'
-          }
-        ];
-
       default:
         return [];
     }
   };
+
+  if ((user?.role as string) === 'admin') {
+    return (
+      <div className="space-y-6">
+        {/* Breadcrumb et header admin */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
+          <div className="flex items-center gap-3">
+            <Shield className="text-blue-700" size={32} />
+            <div>
+              <h1 className="text-2xl font-extrabold text-blue-900">Espace Administrateur</h1>
+              <p className="text-base text-blue-700 font-medium">Gérez les utilisateurs, les rôles, les départements et la sécurité de la plateforme</p>
+            </div>
+          </div>
+        </div>
+        <div className="mb-4">
+          <nav className="text-sm text-blue-800 font-semibold">
+            Administration
+          </nav>
+        </div>
+        {/* Stats et widgets admin */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card hover className="relative overflow-hidden">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 mb-1">
+                  Total Utilisateurs
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {users.length}
+                </p>
+                <p className="text-sm text-gray-500 mt-1">
+                  {users.filter(u => u.isActive).length} actifs
+                </p>
+              </div>
+              <div className="p-3 rounded-full bg-gray-50">
+                <Users className="text-slate-600" size={24} />
+              </div>
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-slate-500" />
+          </Card>
+          <Card hover className="relative overflow-hidden">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 mb-1">
+                  Départements
+                </p>
+                <p className="text-2xl font-bold text-gray-900">8</p>
+                <p className="text-sm text-gray-500 mt-1">Tous actifs</p>
+              </div>
+              <div className="p-3 rounded-full bg-gray-50">
+                <Building className="text-purple-600" size={24} />
+              </div>
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-purple-500" />
+          </Card>
+          <Card hover className="relative overflow-hidden">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 mb-1">
+                  Rôles Utilisateurs
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {Array.from(new Set(users.map(u => u.role))).length}
+                </p>
+                <p className="text-sm text-gray-500 mt-1">Types de rôles actifs</p>
+              </div>
+              <div className="p-3 rounded-full bg-gray-50">
+                <Shield className="text-green-600" size={24} />
+              </div>
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-green-500" />
+          </Card>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <Card hover className="relative overflow-hidden">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 mb-1">
+                  Dernières connexions
+                </p>
+                <ul className="text-sm text-gray-700 mt-2 space-y-1">
+                  {users.slice(0, 5).map(u => (
+                    <li key={u.id}>
+                      {u.firstName} {u.lastName} — {u.lastLogin ? new Date(u.lastLogin).toLocaleString() : 'Jamais connecté'}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="p-3 rounded-full bg-gray-50">
+                <Clock className="text-yellow-600" size={24} />
+              </div>
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-yellow-500" />
+          </Card>
+          <Card hover className="relative overflow-hidden">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 mb-1">
+                  Sécurité
+                </p>
+                <ul className="text-sm text-gray-700 mt-2 space-y-1">
+                  <li>Authentification JWT</li>
+                  <li>Gestion des rôles et permissions</li>
+                  <li>Logs d'activité</li>
+                  <li>Protection des accès sensibles</li>
+                </ul>
+              </div>
+              <div className="p-3 rounded-full bg-gray-50">
+                <Shield className="text-red-600" size={24} />
+              </div>
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-red-500" />
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Préparer header selon le rôle
+  let headerIcon = null;
+  let headerTitle = '';
+  let headerSubtitle = '';
+  let headerBreadcrumb = '';
+  switch (user?.role) {
+    case 'agent':
+      headerIcon = <UserCheck className="text-blue-700" size={32} />;
+      headerTitle = 'Espace Agent';
+      headerSubtitle = 'Suivez et gérez vos demandes budgétaires personnelles';
+      headerBreadcrumb = 'Agent';
+      break;
+    case 'direction':
+      headerIcon = <BarChart3 className="text-green-700" size={32} />;
+      headerTitle = 'Espace Direction';
+      headerSubtitle = 'Analysez, arbitrez et validez les budgets de tous les départements';
+      headerBreadcrumb = 'Direction';
+      break;
+    case 'recteur':
+      headerIcon = <Shield className="text-purple-700" size={32} />;
+      headerTitle = 'Espace Recteur';
+      headerSubtitle = 'Approuvez les budgets consolidés et signez les validations finales';
+      headerBreadcrumb = 'Recteur';
+      break;
+    default:
+      headerIcon = <Home className="text-blue-700" size={32} />;
+      headerTitle = 'Tableau de bord';
+      headerSubtitle = 'Bienvenue sur la plateforme de gestion budgétaire';
+      headerBreadcrumb = 'Accueil';
+  }
 
   const stats = getStatsForRole();
 
@@ -363,24 +479,22 @@ export const DashboardPage: React.FC = () => {
   const notifications = getNotificationsForRole();
 
   return (
-    <div className="space-y-8">
-      {/* Welcome Header */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-xl p-6 text-white">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <h1 className="text-xl font-bold mb-1">
-            Bienvenue, {user?.firstName} {user?.lastName}
-          </h1>
-          <p className="text-slate-200 text-sm capitalize">
-            {user?.role.replace('_', ' ')} {user?.department && `- Département ${user.department}`}
-          </p>
-        </motion.div>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
+        <div className="flex items-center gap-3">
+          {headerIcon}
+          <div>
+            <h1 className="text-2xl font-extrabold text-blue-900">{headerTitle}</h1>
+            <p className="text-base text-blue-700 font-medium">{headerSubtitle}</p>
+          </div>
+        </div>
       </div>
-
-      {/* Stats Grid */}
+      <div className="mb-4">
+        <nav className="text-sm text-blue-800 font-semibold">
+          {headerBreadcrumb}
+        </nav>
+      </div>
+      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, index) => (
           <motion.div

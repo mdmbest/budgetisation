@@ -83,19 +83,13 @@ const menuItems: MenuItem[] = [
     icon: <TrendingUp size={20} />,
     label: 'Exécution Budgétaire',
     path: '/execution',
-    roles: ['direction', 'recteur', 'admin']
+    roles: ['direction', 'recteur']
   },
   {
     icon: <BarChart3 size={20} />,
     label: 'Rapports et Analyses',
     path: '/reports',
-    roles: ['direction', 'recteur', 'auditeur']
-  },
-  {
-    icon: <Shield size={20} />,
-    label: 'Interface Audit',
-    path: '/audit',
-    roles: ['auditeur']
+    roles: ['direction', 'recteur']
   },
   {
     icon: <Users size={20} />,
