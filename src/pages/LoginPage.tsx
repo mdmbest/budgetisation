@@ -6,11 +6,13 @@ import { useAuth } from '../hooks/useAuth';
 type LoginPageProps = {
   onLoginSuccess?: () => void;
   onBack?: () => void;
+  prefillEmail?: string;
+  prefillPassword?: string;
 };
 
-export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBack }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBack, prefillEmail, prefillPassword }) => {
+  const [email, setEmail] = useState(prefillEmail || '');
+  const [password, setPassword] = useState(prefillPassword || '');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);

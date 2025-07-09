@@ -18,6 +18,7 @@ function App() {
   const [currentState, setCurrentState] = useState<AppState>('home');
   const [currentPath, setCurrentPath] = useState('/dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [prefillCredentials, setPrefillCredentials] = useState<{ email: string; password: string } | null>(null);
   const { isAuthenticated, user, checkAuth } = useAuth();
 
   // Vérifier l'authentification au chargement de l'app
@@ -38,7 +39,10 @@ function App() {
     }
   }, [isAuthenticated, currentState]);
 
-  const handleLogin = () => {
+  const handleLogin = (credentials?: { email: string; password: string }) => {
+    if (credentials) {
+      setPrefillCredentials(credentials);
+    }
     setCurrentState('login');
   };
 
@@ -49,6 +53,7 @@ function App() {
   const handleLoginSuccess = () => {
     console.log('handleLoginSuccess appelé');
     setCurrentState('dashboard');
+    setPrefillCredentials(null); // Réinitialiser les identifiants pré-remplis
   };
 
   const handleBackToHome = () => {
@@ -181,7 +186,12 @@ function App() {
             exit={{ opacity: 0, x: -100 }}
             transition={{ duration: 0.3 }}
           >
-            <LoginPage onBack={handleBackToHome} onLoginSuccess={handleLoginSuccess} />
+            <LoginPage 
+              onBack={handleBackToHome} 
+              onLoginSuccess={handleLoginSuccess}
+              prefillEmail={prefillCredentials?.email}
+              prefillPassword={prefillCredentials?.password}
+            />
           </motion.div>
         )}
 

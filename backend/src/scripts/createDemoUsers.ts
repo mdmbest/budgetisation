@@ -1,5 +1,6 @@
 import prisma from '../utils/database';
 import bcrypt from 'bcryptjs';
+import { UserRole } from '@prisma/client';
 
 async function createDemoUsers() {
   try {
@@ -11,7 +12,7 @@ async function createDemoUsers() {
         firstName: 'Serigne Mame',
         lastName: 'Sarr',
         password: hashedPassword,
-        role: 'admin',
+        role: 'admin' as UserRole,
         department: null,
         isActive: true,
       },
@@ -20,7 +21,7 @@ async function createDemoUsers() {
         firstName: 'MAME DIARRA',
         lastName: 'MBACKE',
         password: hashedPassword,
-        role: 'agent',
+        role: 'agent' as UserRole,
         department: 'Informatique',
         isActive: true,
       },
@@ -29,7 +30,7 @@ async function createDemoUsers() {
         firstName: 'Chef',
         lastName: 'Département',
         password: hashedPassword,
-        role: 'chef_departement',
+        role: 'chef_departement' as UserRole,
         department: 'Informatique',
         isActive: true,
       },
@@ -38,7 +39,7 @@ async function createDemoUsers() {
         firstName: 'Direction',
         lastName: 'Générale',
         password: hashedPassword,
-        role: 'direction',
+        role: 'direction' as UserRole,
         department: null,
         isActive: true,
       },
@@ -47,16 +48,7 @@ async function createDemoUsers() {
         firstName: 'Recteur',
         lastName: 'ESP',
         password: hashedPassword,
-        role: 'recteur',
-        department: null,
-        isActive: true,
-      },
-      {
-        email: 'auditeur@esp.sn',
-        firstName: 'Auditeur',
-        lastName: 'Interne',
-        password: hashedPassword,
-        role: 'auditeur',
+        role: 'recteur' as UserRole,
         department: null,
         isActive: true,
       }
@@ -72,15 +64,22 @@ async function createDemoUsers() {
         const user = await prisma.user.create({
           data: userData,
         });
-        console.log(`Utilisateur créé: ${user.email} (${user.firstName} ${user.lastName})`);
+        console.log(`✅ Utilisateur créé: ${user.email} (${user.firstName} ${user.lastName})`);
       } else {
-        console.log(`Utilisateur existe déjà: ${userData.email}`);
+        console.log(`ℹ️  Utilisateur existe déjà: ${userData.email}`);
       }
     }
 
-    console.log('Script terminé !');
+    console.log('\n🎉 Script terminé avec succès !');
+    console.log('\n📋 Comptes de démonstration créés :');
+    console.log('• admin@esp.sn / password123 (Administrateur)');
+    console.log('• agent@esp.sn / password123 (Agent)');
+    console.log('• chef@esp.sn / password123 (Chef Département)');
+    console.log('• direction@esp.sn / password123 (Direction)');
+    console.log('• recteur@esp.sn / password123 (Recteur)');
+    console.log('\n⚠️  IMPORTANT: Changez ces mots de passe après la première connexion !');
   } catch (error) {
-    console.error('Erreur lors de la création des utilisateurs:', error);
+    console.error('❌ Erreur lors de la création des utilisateurs:', error);
   } finally {
     await prisma.$disconnect();
   }

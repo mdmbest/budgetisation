@@ -33,12 +33,13 @@ export const DocumentationPage: React.FC<DocumentationPageProps> = ({ onBackToHo
           content: `Pour accéder à la plateforme ESP Budget, utilisez les identifiants fournis par votre administrateur système. 
           
           Comptes de démonstration disponibles :
-          • Super Admin : admin@esp.sn / admin123
-          • Agent : agent@esp.sn / agent123  
-          • Chef Département : chef@esp.sn / chef123
-          • Direction : direction@esp.sn / direction123
-          • Recteur : recteur@esp.sn / recteur123
-          • Auditeur : auditeur@esp.sn / audit123`
+          • Administrateur : admin@esp.sn / password123
+          • Agent : agent@esp.sn / password123  
+          • Chef Département : chef@esp.sn / password123
+          • Direction : direction@esp.sn / password123
+          • Recteur : recteur@esp.sn / password123
+          
+          ⚠️ IMPORTANT : Changez ces mots de passe après votre première connexion pour des raisons de sécurité !`
         },
         {
           title: 'Navigation',
@@ -87,14 +88,7 @@ export const DocumentationPage: React.FC<DocumentationPageProps> = ({ onBackToHo
           • Vue d'ensemble de l'institution
           • Génération d'arrêtés rectoraux`
         },
-        {
-          title: 'Auditeur',
-          content: `Fonctionnalités disponibles :
-          • Consultation de toutes les opérations
-          • Génération de rapports d'audit
-          • Traçabilité complète des actions
-          • Interface en lecture seule`
-        },
+
         {
           title: 'Super Administrateur',
           content: `Fonctionnalités disponibles :

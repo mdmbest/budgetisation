@@ -11,6 +11,7 @@
     "db:migrate": "npx prisma migrate dev",
     "db:generate": "npx prisma generate",
     "db:seed": "ts-node src/database/seed.ts",
+    "create-demo-users": "ts-node src/scripts/createDemoUsers.ts",
     "reset-password": "ts-node src/scripts/resetPassword.ts"
   },
   "keywords": [

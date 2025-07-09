@@ -20,7 +20,7 @@ import { Card } from '../components/ui/Card';
 import { Logo } from '../components/ui/Logo';
 
 interface HomePageProps {
-  onLogin: () => void;
+  onLogin: (credentials?: { email: string; password: string }) => void;
   onDocumentation: () => void;
 }
 
@@ -82,11 +82,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onLogin, onDocumentation }) 
             <Logo size="md" variant="full" />
             
             <div className="flex items-center gap-3">
-              {/* <Button onClick={onDocumentation} variant="outline">
+              <Button onClick={onDocumentation} variant="outline">
                 <Book size={16} />
                 Documentation
-              </Button> */}
-              <Button onClick={onLogin} variant="primary">
+              </Button>
+              <Button onClick={() => onLogin()} variant="primary">
                 Se Connecter
                 <ArrowRight size={16} />
               </Button>
@@ -157,7 +157,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onLogin, onDocumentation }) 
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button onClick={onLogin} size="lg" variant="primary" className="btn-glow shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
+                <Button onClick={() => onLogin()} size="lg" variant="primary" className="btn-glow shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
                   <Users size={20} />
                   Accéder à la Plateforme
                 </Button>
@@ -330,6 +330,142 @@ export const HomePage: React.FC<HomePageProps> = ({ onLogin, onDocumentation }) 
         </div>
       </section>
 
+      {/* Demo Accounts Section */}
+      <section className="py-20 bg-gradient-to-br from-blue-50 to-indigo-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              🚀 Comptes de Démonstration
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Testez la plateforme avec ces comptes pré-configurés. 
+              Chaque rôle a des fonctionnalités spécifiques adaptées à ses responsabilités.
+            </p>
+            <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-yellow-800 font-medium">
+                ⚠️ IMPORTANT : Changez ces mots de passe après votre première connexion !
+              </p>
+            </div>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              {
+                role: 'Administrateur',
+                email: 'admin@esp.sn',
+                password: 'password123',
+                description: 'Gestion complète du système, utilisateurs et configuration',
+                color: 'bg-red-500',
+                icon: <Users size={24} />
+              },
+              {
+                role: 'Agent',
+                email: 'agent@esp.sn',
+                password: 'password123',
+                description: 'Création et suivi des demandes budgétaires',
+                color: 'bg-blue-500',
+                icon: <FileText size={24} />
+              },
+              {
+                role: 'Chef Département',
+                email: 'chef@esp.sn',
+                password: 'password123',
+                description: 'Validation des demandes départementales',
+                color: 'bg-green-500',
+                icon: <CheckCircle size={24} />
+              },
+              {
+                role: 'Direction',
+                email: 'direction@esp.sn',
+                password: 'password123',
+                description: 'Arbitrage centralisé et consolidation',
+                color: 'bg-purple-500',
+                icon: <BarChart3 size={24} />
+              },
+              {
+                role: 'Recteur',
+                email: 'recteur@esp.sn',
+                password: 'password123',
+                description: 'Approbation finale et signature électronique',
+                color: 'bg-orange-500',
+                icon: <Award size={24} />
+              }
+            ].map((account, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+              >
+                <Card hover className="h-full border-2 hover:border-blue-300 transition-all duration-300">
+                  <div className="flex items-center mb-4">
+                    <div className={`w-12 h-12 rounded-lg ${account.color} flex items-center justify-center text-white mr-4`}>
+                      {account.icon}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg text-gray-900">{account.role}</h3>
+                      <p className="text-sm text-gray-600">{account.description}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-gray-700">Email:</span>
+                        <code className="text-xs bg-white px-2 py-1 rounded border">{account.email}</code>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-gray-700">Mot de passe:</span>
+                        <code className="text-xs bg-white px-2 py-1 rounded border">{account.password}</code>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <Button 
+                      onClick={() => onLogin({ email: account.email, password: account.password })} 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full"
+                    >
+                      Se connecter avec ce compte
+                    </Button>
+                  </div>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
+            className="text-center mt-12"
+          >
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-blue-900 mb-3">
+                📚 Besoin d'aide ?
+              </h3>
+              <p className="text-blue-800 mb-4">
+                Consultez notre documentation complète pour apprendre à utiliser la plateforme
+              </p>
+              <Button onClick={onDocumentation} variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50">
+                <Book size={16} />
+                Accéder à la Documentation
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-slate-700 to-slate-800">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
@@ -345,7 +481,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onLogin, onDocumentation }) 
               Rejoignez la transformation numérique de l'ESP avec une solution 
               sécurisée, conforme et efficace.
             </p>
-            <Button onClick={onLogin} size="lg" variant="secondary">
+            <Button onClick={() => onLogin()} size="lg" variant="secondary">
               <Clock size={20} />
               Commencer Maintenant
             </Button>
@@ -378,7 +514,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onLogin, onDocumentation }) 
             <div>
               <h4 className="font-semibold mb-4">Support</h4>
               <ul className="space-y-2 text-gray-400">
-                <li>Documentation</li>
+                <li>
+                  <button 
+                    onClick={onDocumentation}
+                    className="hover:text-white transition-colors cursor-pointer"
+                  >
+                    📚 Documentation
+                  </button>
+                </li>
                 <li>Assistance technique</li>
                 <li>Formation utilisateurs</li>
                 <li>Contact DSI</li>
